@@ -2,11 +2,14 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { CartDrawer } from "@/components/CartDrawer";
 import { ProductCard } from "@/components/ProductCard";
+import { AIShoppingAssistant } from "@/components/AIShoppingAssistant";
+import { SmartSearch } from "@/components/SmartSearch";
 import { fetchProducts, type ShopifyProduct } from "@/lib/shopify";
 import { Loader2, ShoppingBag } from "lucide-react";
 
 const Index = () => {
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<ShopifyProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,6 +17,7 @@ const Index = () => {
       try {
         const data = await fetchProducts(20);
         setProducts(data);
+        setFilteredProducts(data);
       } catch (error) {
         console.error('Failed to load products:', error);
       } finally {
@@ -55,6 +59,13 @@ const Index = () => {
 
       {/* Products Grid */}
       <section className="container mx-auto px-4 py-16">
+        {!loading && products.length > 0 && (
+          <SmartSearch
+            products={products}
+            onSearchResults={setFilteredProducts}
+          />
+        )}
+        
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -69,15 +80,20 @@ const Index = () => {
           </div>
         ) : (
           <>
-            <h2 className="text-3xl font-bold mb-8">Featured Products</h2>
+            <h2 className="text-3xl font-bold mb-8">
+              {filteredProducts.length === products.length ? 'Featured Products' : 'Search Results'}
+            </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-              {products.map((product) => (
+              {filteredProducts.map((product) => (
                 <ProductCard key={product.node.id} product={product} />
               ))}
             </div>
           </>
         )}
       </section>
+
+      {/* AI Shopping Assistant */}
+      {products.length > 0 && <AIShoppingAssistant products={products} />}
 
       {/* Footer */}
       <footer className="bg-primary text-primary-foreground mt-20 py-12">

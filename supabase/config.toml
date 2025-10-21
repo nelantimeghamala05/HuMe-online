@@ -1,0 +1,10 @@
+project_id = "uwetabliygglkswfaadg"
+
+[functions.ai-shopping-assistant]
+verify_jwt = false
+
+[functions.smart-search]
+verify_jwt = false
+
+[functions.product-recommendations]
+verify_jwt = false

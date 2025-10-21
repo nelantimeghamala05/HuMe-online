@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { CartDrawer } from "@/components/CartDrawer";
-import { fetchProductByHandle } from "@/lib/shopify";
+import { ProductRecommendations } from "@/components/ProductRecommendations";
+import { fetchProductByHandle, fetchProducts, type ShopifyProduct } from "@/lib/shopify";
 import { useCartStore } from "@/stores/cartStore";
 import { Loader2, ShoppingBag, ArrowLeft, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
@@ -10,6 +11,7 @@ import { toast } from "sonner";
 const ProductDetail = () => {
   const { handle } = useParams<{ handle: string }>();
   const [product, setProduct] = useState<any>(null);
+  const [allProducts, setAllProducts] = useState<ShopifyProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const addItem = useCartStore(state => state.addItem);
@@ -19,8 +21,12 @@ const ProductDetail = () => {
       if (!handle) return;
       
       try {
-        const data = await fetchProductByHandle(handle);
-        setProduct(data);
+        const [productData, productsData] = await Promise.all([
+          fetchProductByHandle(handle),
+          fetchProducts(20),
+        ]);
+        setProduct(productData);
+        setAllProducts(productsData);
       } catch (error) {
         console.error('Failed to load product:', error);
       } finally {
@@ -155,6 +161,16 @@ const ProductDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* AI Recommendations */}
+      {product && allProducts.length > 0 && (
+        <div className="container mx-auto px-4">
+          <ProductRecommendations
+            currentProduct={product}
+            allProducts={allProducts}
+          />
+        </div>
+      )}
     </div>
   );
 };
