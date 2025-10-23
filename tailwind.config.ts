@@ -51,10 +51,12 @@ export default {
       backgroundImage: {
         'gradient-hero': 'var(--gradient-hero)',
         'gradient-card': 'var(--gradient-card)',
+        'gradient-artistic': 'var(--gradient-artistic)',
       },
       boxShadow: {
         'soft': 'var(--shadow-soft)',
         'hover': 'var(--shadow-hover)',
+        'artistic': 'var(--shadow-artistic)',
       },
       transitionProperty: {
         'base': 'var(--transition-base)',

@@ -90,7 +90,7 @@ const ProductDetail = () => {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <ShoppingBag className="h-6 w-6 text-primary" />
-            <h1 className="text-2xl font-bold">BuyBliss</h1>
+            <h1 className="text-2xl font-bold">HuMe Store</h1>
           </Link>
           <CartDrawer />
         </div>
@@ -127,9 +127,21 @@ const ProductDetail = () => {
               </p>
             </div>
 
-            <p className="text-muted-foreground leading-relaxed">
-              {product.description}
-            </p>
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-lg mb-2">About This Artwork</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {product.description}
+                </p>
+              </div>
+              
+              <div className="bg-gradient-card p-4 rounded-lg border border-border">
+                <h3 className="font-semibold text-sm mb-2 text-primary">Artist's Note</h3>
+                <p className="text-sm text-muted-foreground italic">
+                  Each piece is handcrafted with love and attention to detail. This artwork is part of our exclusive collection, designed to bring warmth and creativity to your space.
+                </p>
+              </div>
+            </div>
 
             {/* Variants */}
             {product.variants.edges.length > 1 && (
