@@ -1,9 +1,12 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Heart } from "lucide-react";
 import type { ShopifyProduct } from "@/lib/shopify";
 import { useCartStore } from "@/stores/cartStore";
+import { useWishlist } from "@/hooks/useWishlist";
 import { toast } from "sonner";
 
 interface ProductCardProps {
@@ -12,7 +15,41 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product }: ProductCardProps) => {
   const addItem = useCartStore(state => state.addItem);
+  const [user, setUser] = useState<any>(null);
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist(user?.id);
   const { node } = product;
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleWishlistToggle = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user) {
+      toast.error("Please sign in to use wishlist");
+      return;
+    }
+
+    const inWishlist = isInWishlist(node.id);
+    
+    if (inWishlist) {
+      await removeFromWishlist(node.id);
+    } else {
+      await addToWishlist(node.id, node.handle);
+    }
+  };
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -38,11 +75,22 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 
   const price = parseFloat(node.priceRange.minVariantPrice.amount);
   const imageUrl = node.images.edges[0]?.node.url;
+  const inWishlist = isInWishlist(node.id);
 
   return (
     <Link to={`/product/${node.handle}`}>
       <Card className="group overflow-hidden hover:shadow-hover transition-all duration-300 h-full">
-        <CardContent className="p-0">
+        <CardContent className="p-0 relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="absolute top-2 right-2 z-10 bg-background/80 hover:bg-background"
+            onClick={handleWishlistToggle}
+          >
+            <Heart
+              className={`h-5 w-5 ${inWishlist ? "fill-primary text-primary" : ""}`}
+            />
+          </Button>
           <div className="aspect-square overflow-hidden bg-muted">
             {imageUrl ? (
               <img

@@ -1,15 +1,35 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { CartDrawer } from "@/components/CartDrawer";
 import { ProductCard } from "@/components/ProductCard";
 import { AIShoppingAssistant } from "@/components/AIShoppingAssistant";
 import { SmartSearch } from "@/components/SmartSearch";
+import { ProductUploadDialog } from "@/components/ProductUploadDialog";
+import { DeliveryAddressDialog } from "@/components/DeliveryAddressDialog";
 import { fetchProducts, type ShopifyProduct } from "@/lib/shopify";
-import { Loader2, ShoppingBag } from "lucide-react";
+import { Loader2, ShoppingBag, Heart, LogOut, LogIn } from "lucide-react";
 const Index = () => {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<ShopifyProduct[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ShopifyProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
   useEffect(() => {
     const loadProducts = async () => {
       try {
@@ -24,6 +44,12 @@ const Index = () => {
     };
     loadProducts();
   }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
+
   return <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b sticky top-0 bg-background/95 backdrop-blur z-50">
@@ -32,7 +58,29 @@ const Index = () => {
             <ShoppingBag className="h-6 w-6 text-primary" />
             <h1 className="text-2xl font-bold">HuME</h1>
           </div>
-          <CartDrawer />
+          <div className="flex items-center gap-2">
+            {user ? (
+              <>
+                <ProductUploadDialog />
+                <DeliveryAddressDialog userId={user.id} />
+                <Button variant="outline" size="icon" onClick={() => navigate("/wishlist")}>
+                  <Heart className="h-5 w-5" />
+                </Button>
+                <CartDrawer />
+                <Button variant="ghost" size="icon" onClick={handleSignOut}>
+                  <LogOut className="h-5 w-5" />
+                </Button>
+              </>
+            ) : (
+              <>
+                <CartDrawer />
+                <Button variant="outline" onClick={() => navigate("/auth")}>
+                  <LogIn className="h-4 w-4 mr-2" />
+                  Sign In
+                </Button>
+              </>
+            )}
+          </div>
         </div>
       </header>
 
